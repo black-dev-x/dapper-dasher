@@ -12,13 +12,17 @@ int main()
   
   int posY{gameHeight - height};
   int velocity{-10};
-  
+
   while(!WindowShouldClose()) 
   {
     BeginDrawing();
-    posY += velocity;
+    bool isJumping = IsKeyPressed(KEY_SPACE);
+    if(isJumping) 
+    {
+      posY += velocity;
+    }
+    DrawRectangle(gameWidth / 2 - width / 2, posY, width, height, RED);
     ClearBackground(RAYWHITE);
-    DrawText("Congrats! You created your first window!", 190, 200, 20, LIGHTGRAY);
     EndDrawing();
   }
   CloseWindow();
