@@ -16,7 +16,7 @@ int main()
   while(!WindowShouldClose()) 
   {
     BeginDrawing();
-    bool isJumping = IsKeyPressed(KEY_SPACE);
+    bool isJumping = IsKeyDown(KEY_SPACE);
     if(isJumping) 
     {
       posY += velocity;
