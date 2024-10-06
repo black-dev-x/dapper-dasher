@@ -1,15 +1,12 @@
 #include <raylib.h>
 
-const int gameWidth = 800;
-const int gameHeight = 450;
-const char gameTitle = "Dasher";
-
 int main() 
 {
-
-  InitWindow(800, 450, gameTitle);
+  const int gameWidth{1024};
+  const int gameHeight{720};
+  InitWindow(gameWidth, gameHeight, "Dapper Dasher!");
   SetTargetFPS(60);
-  while(true) 
+  while(!WindowShouldClose()) 
   {
     BeginDrawing();
     ClearBackground(RAYWHITE);
