@@ -1,13 +1,21 @@
 #include <raylib.h>
 #include <stdio.h>
-typedef struct Player 
-{
+
+Texture2D nebulaTexture;
+Texture2D playerSprite;
+
+typedef struct AnimationData {
+  Rectangle rec;
   Vector2 pos;
-  Texture2D sprite;
-  Vector2 velocity;
-  Rectangle avatar;
-  int groundPosition;
-} Player;
+  int frame;
+  float updateTime;
+  float runningTime;
+} AnimationData;
+
+const int nebulaAmount = 2;
+int playerGroundPosition;
+AnimationData scarfyData;
+AnimationData nebulaData[nebulaAmount];
 
 typedef struct Game 
 {
@@ -20,26 +28,11 @@ typedef struct Game
 } Game;
 
 Game game;
-Player player;
 const int gravity = 1000;
-
-void initialize()
-{
-  player.sprite = LoadTexture("textures/scarfy.png");
-  player.avatar.width = (float) player.sprite.width / 6;
-  player.avatar.height = player.sprite.height;
-  player.groundPosition = game.height - player.avatar.height;
-}
-
-void placePlayer() 
-{
-  player.pos.x = game.width / 2 - player.avatar.width / 2;
-  player.pos.y = player.groundPosition;
-}
 
 void applyGravity()
 {
-  if(player.pos.y != player.groundPosition)
+  if(scarfyData.pos.y != player.groundPosition)
   {
     player.velocity.y += gravity * game.deltaTime;
   }
@@ -50,6 +43,7 @@ void handleJump()
   if(isJumping && player.pos.y == player.groundPosition) 
   {
     player.velocity.y = -600;
+    player.isInAir = true;
   }
 }
 void fallToTheGround()
@@ -59,6 +53,7 @@ void fallToTheGround()
   {
     player.pos.y = player.groundPosition;
     player.velocity.y = 0;
+    player.isInAir = false;
   }
 }
 void run()
@@ -67,13 +62,57 @@ void run()
   game.runningTime += game.deltaTime;
   float cycles = game.runningTime / updateTime;
   float currentSprite = (int)cycles % 6;
-  player.avatar.x = currentSprite * player.avatar.width;
+  float nebulaSprite = (int)cycles % 61;
+  if(!player.isInAir)
+    player.sprite.x = currentSprite * player.sprite.width;
+  for(int i = 0; i < nebulaAmount; i++){
+    nebulas[i].position.x -= nebulas[i].velocity * game.deltaTime;
+    nebulas[i].sprite.x = (int)nebulaSprite % 8 * nebulas[i].sprite.width;
+    nebulas[i].sprite.y = (int)nebulaSprite / 8 * nebulas[i].sprite.height;
+  }
+}
+
+void loadTextures() 
+{
+  playerSprite = LoadTexture("textures/scarfy.png");
+  nebulaTexture = LoadTexture("textures/12_nebula_spritesheet.png");
+}
+void initializeScarfyData()
+{
+  scarfyData.rec.x = 0;
+  scarfyData.rec.y = 0;
+  scarfyData.rec.width = playerSprite.width / 6;
+  scarfyData.rec.height = playerSprite.height;
+  scarfyData.pos.x = game.width / 2 - scarfyData.rec.width / 2;
+  playerGroundPosition = game.height - scarfyData.rec.height;
+  scarfyData.pos.y = playerGroundPosition;
+  scarfyData.frame = 0;
+  scarfyData.updateTime = 1.0 / 12;
+  scarfyData.runningTime = 0.0;
+}
+void initializeNebulaData()
+{
+  AnimationData nebulaData[nebulaAmount];
+  for(int i = 0; i < nebulaAmount; i++)
+  {
+    nebulaData[i].rec.x = 0;
+    nebulaData[i].rec.y = 0;
+    nebulaData[i].rec.width = nebulaTexture.width / 8;
+    nebulaData[i].rec.height = nebulaTexture.height / 8;
+    nebulaData[i].frame = 0;
+    nebulaData[i].updateTime = 1.0 / 12;
+    nebulaData[i].runningTime = 0.0;
+  }
 }
 int main() 
 {
   InitWindow(game.width, game.height, game.title);
   initialize();
   SetTargetFPS(game.FPS);
+  loadTextures();
+  initializeScarfyData();
+  initializeNebulaData();
+
   placePlayer();
   while(!WindowShouldClose()) 
   {  
@@ -83,11 +122,15 @@ int main()
     handleJump();
     run();
     fallToTheGround();
-    DrawTextureRec(player.sprite, player.avatar, player.pos, WHITE);
+    DrawTextureRec(playerSprite, player.sprite, player.pos, WHITE);
+    for(int i = 0; i < nebulaAmount; i++){
+      DrawTextureRec(nebulaTexture, nebulas[i].sprite, nebulas[i].position, WHITE);
+    }
     ClearBackground(RAYWHITE);
     EndDrawing();
   }
-  UnloadTexture(player.sprite);
+  UnloadTexture(playerSprite);
+  UnloadTexture(nebulaTexture);
   CloseWindow();
 }
 
